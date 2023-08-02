@@ -19,7 +19,6 @@ class MainActivity : ComponentActivity() {
 
         val config = PickerConfig(
             currentType = PickerType.Image,
-            typesToShow = listOf(PickerType.Audio, PickerType.Image, PickerType.File, PickerType.Video),
             storageTitle = "حافظه دستگاه",
             storageDescription = "برای انتخاب فایل از فایل منیجر دستگاه",
             galleryTitle = "گالری",

@@ -18,7 +18,7 @@ val pickerColorPrimary = Color(0xFF55D6D6)
 @Stable
 data class PickerConfig(
     val currentType: PickerType,
-    val typesToShow: List<PickerType>,
+    val modes: List<PickerMode> = PickerUtils.allModes,
 
     val containerColor: Color = pickerDarkColor,
     val scrimColor: Color? = null,
