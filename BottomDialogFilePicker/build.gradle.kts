@@ -68,7 +68,7 @@ dependencies {
 
     implementation(libs.accompanist.permissions)
 
-    implementation (libs.handle.path.oz)
+    implementation(libs.handle.path.oz)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)
@@ -79,8 +79,8 @@ publishing {
     publications {
         register<MavenPublication>("release") {
             groupId = "mahdiasd.bottomdialogfilepicker"
-            artifactId = "mahdiasd.bottomdialogfilepicker"
-            version = "0.0.5"
+            artifactId = "compose_bottom_dialog_file_picker"
+            version = "0.0.7"
 
             afterEvaluate {
                 from(components["release"])

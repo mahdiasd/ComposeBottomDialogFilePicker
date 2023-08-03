@@ -1,5 +1,5 @@
 [versions]
-agp = "8.1.0"
+agp = "8.0.2"
 coil-video = "2.4.0"
 handle-path-oz = "1.0.7"
 kotlin = "1.8.10"
