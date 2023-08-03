@@ -6,20 +6,7 @@ plugins {
 
 android {
 
-    signingConfigs {
-        getByName("debug") {
-            storeFile = file("C:\\Users\\Mahdi\\AndroidStudioProjects\\BottomDialogFilePicker\\key.jks")
-            storePassword = "123456"
-            keyAlias = "key0"
-            keyPassword = "123456"
-        }
-        create("release") {
-            storeFile = file("C:\\Users\\Mahdi\\AndroidStudioProjects\\BottomDialogFilePicker\\key.jks")
-            storePassword = "123456"
-            keyAlias = "key0"
-            keyPassword = "123456"
-        }
-    }
+
     namespace = "mahdiasd.bottomdialogfilepicker.sample"
     compileSdk = 33
 
@@ -40,7 +27,7 @@ android {
         release {
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig = signingConfigs.getByName("release")
+//            signingConfig = signingConfigs.getByName("release")
         }
     }
 
