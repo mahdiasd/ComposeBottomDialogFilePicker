@@ -177,7 +177,7 @@ fun FileItem(
                 Text(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onClicked() },
+                        ,
                     text = title,
                     style = titleTextStyle.plus(TextStyle(textDirection = TextDirection.Rtl, textAlign = TextAlign.Right))
                 )

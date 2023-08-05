@@ -24,6 +24,8 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -387,16 +389,21 @@ fun BottomSheetDialog(
 
                 if (selectedCount > 0)
                     Text(
-                        text = "$selectedCount", modifier = Modifier
+                        text = "$selectedCount",
+                        modifier = Modifier
+                            .wrapContentSize(unbounded = true)
                             .border(1.dp, config.containerColor, shape = CircleShape)
-                            .size(20.dp)
+                            .sizeIn(20.dp, 20.dp, 30.dp, 30.dp)
                             .shadow(2.dp, CircleShape, spotColor = Color.Gray)
-                            .background(config.doneBadgeBackgroundColor, CircleShape)
+                            .drawBehind {
+                                drawCircle(
+                                    color = config.doneBadgeBackgroundColor,
+                                    radius = this.size.maxDimension
+                                )
+                            }
                             .scale(1f)
                             .align(Alignment.BottomEnd),
-                        textAlign = TextAlign.Center,
                         style = config.doneBadgeStyle,
-                        fontSize = 12.sp
                     )
             }
         }
@@ -558,9 +565,10 @@ fun FileScreen(config: PickerConfig, onStoragePicker: (List<PickerFile>) -> Unit
     val pathListener =
         object : HandlePathOzListener.MultipleUri {
             override fun onRequestHandlePathOz(listPathOz: List<PathOz>, tr: Throwable?) {
-                listPathOz.map { pathOz ->
-                    PickerFile(path = pathOz.path, file = File(pathOz.path), selected = false)
-                }.apply { onStoragePicker.invoke(this.distinctBy { it.path }) }
+                if (listPathOz.isNotEmpty()) {
+                    listPathOz.map { pathOz -> PickerFile(path = pathOz.path, file = File(pathOz.path), selected = false) }
+                        .let { filePickers -> onStoragePicker.invoke(filePickers.distinctBy { it.path }) }
+                }
             }
         }
 

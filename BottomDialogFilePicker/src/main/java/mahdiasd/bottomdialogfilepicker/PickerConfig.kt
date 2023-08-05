@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,7 +40,7 @@ data class PickerConfig(
     val doneIconBackground: Color = pickerColorPrimary,
 
     val doneBadgeBackgroundColor: Color = pickerColorPrimary,
-    val doneBadgeStyle: TextStyle = TextStyle(Color.DarkGray, fontWeight = FontWeight.Normal, fontSize = 14.sp),
+    val doneBadgeStyle: TextStyle = TextStyle(Color.White, fontWeight = FontWeight.Normal, fontSize = 14.sp , textAlign = TextAlign.Center),
 
 
     val videoPlayIcon: Int = R.drawable.mahdiasd_ic_play,
