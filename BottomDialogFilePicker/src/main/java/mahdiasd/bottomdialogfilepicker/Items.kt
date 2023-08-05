@@ -45,6 +45,7 @@ fun MediaItem(
     config: PickerConfig = PickerConfig(PickerType.Video),
     pickerMode: PickerMode = PickerMode(PickerType.Video),
     imageLoader: ImageLoader,
+    enable: Boolean,
     onChecked: () -> Unit = {},
 ) {
 
@@ -137,7 +138,7 @@ fun MediaAudioItem(
             selectedColor = config.checkBoxSelectedColor,
             unSelectedColor = config.checkBoxUnSelectedColor,
             iconSize = config.checkBoxSize,
-            onChecked = onChecked
+            onChecked = onChecked,
         )
     }
 
@@ -232,7 +233,7 @@ fun CircleCheckbox(
     selectedColor: Color,
     unSelectedColor: Color,
     iconSize: Dp = 24.dp,
-    onChecked: () -> Unit = {}
+    onChecked: () -> Unit = {},
 ) {
     Icon(
         imageVector = Icons.Filled.Done,

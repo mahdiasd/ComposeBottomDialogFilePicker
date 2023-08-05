@@ -1,9 +1,11 @@
 package mahdiasd.bottomdialogfilepicker
 
 import android.graphics.Bitmap
+import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -84,7 +86,6 @@ import mahdiasd.bottomdialogfilepicker.PickerUtils.getAudio
 import mahdiasd.bottomdialogfilepicker.PickerUtils.getImage
 import mahdiasd.bottomdialogfilepicker.PickerUtils.getVideo
 import mahdiasd.bottomdialogfilepicker.PickerUtils.permissionState
-import mahdiasd.bottomdialogfilepicker.PickerUtils.printToLog
 import mahdiasd.bottomdialogfilepicker.PickerUtils.toDp
 import mahdiasd.bottomdialogfilepicker.PickerUtils.toPx
 import java.io.File
@@ -94,7 +95,8 @@ import java.io.File
 fun FilePickerDialog(
     config: PickerConfig,
     modes: List<PickerMode> = PickerUtils.allModes,
-    selectedFiles: (List<PickerFile>) -> Unit
+    onDismissDialog: () -> Unit,
+    selectedFiles: (List<PickerFile>) -> Unit,
 ) {
     val permissionsState = permissionState(config.enableCamera)
     if (!permissionsState.allPermissionsGranted) {
@@ -145,9 +147,8 @@ fun FilePickerDialog(
             currentType = currentType.value,
             files = files.toImmutableList(),
             selectedCount = selectedFilesCount.value,
-            itemTypeClick = {
-                currentType.value = it
-            },
+            itemTypeClick = { currentType.value = it },
+            onDismissDialog = onDismissDialog,
             searchText = searchText,
             onSearchChange = {
                 searchText = it
@@ -173,9 +174,19 @@ fun FilePickerDialog(
                         audios[index] = audios[index].copy(selected = !pickerFile.selected)
                     }
                 }
-                val count = (images.flatMap { listOf(it) } + audios.flatMap { listOf(it) } + videos.flatMap { listOf(it) }).filter { it.selected }.size
-                if (count != selectedFilesCount.value)
-                    selectedFilesCount.value = count
+
+                val total = (images + audios + videos).filter { it.selected }
+
+                if (total.size > config.maxSelection) {
+                    total.firstOrNull()?.let {
+                        images.indexOfFirst { it == total.first() }.takeIf { it > 0 }?.apply { images[this] = images[this].copy(selected = false) }
+                        videos.indexOfFirst { it == total.first() }.takeIf { it > 0 }?.apply { videos[this] = videos[this].copy(selected = false) }
+                        audios.indexOfFirst { it == total.first() }.takeIf { it > 0 }?.apply { audios[this] = audios[this].copy(selected = false) }
+                    }
+                }
+
+                if (total.size != selectedFilesCount.value)
+                    selectedFilesCount.value = total.size
             },
             onDoneClick = {
                 val s = (images.flatMap { listOf(it) } + audios.flatMap { listOf(it) } + videos.flatMap { listOf(it) }).filter { it.selected }.distinctBy { it.path }
@@ -197,6 +208,7 @@ fun FilePickerDialog(
 
 }
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BottomSheetDialog(
@@ -210,6 +222,7 @@ fun BottomSheetDialog(
     onChangeSelect: (PickerFile) -> Unit,
     searchText: String = "",
     onSearchChange: (String) -> Unit,
+    onDismissDialog: () -> Unit,
     onDoneClick: () -> Unit,
     onCameraPhoto: (PickerFile) -> Unit,
     onStoragePicker: (List<PickerFile>) -> Unit,
@@ -234,6 +247,15 @@ fun BottomSheetDialog(
             .build()
     }
 
+    var horizontalArrangement by remember { mutableStateOf(Arrangement.SpaceEvenly) }
+    LaunchedEffect(key1 = selectedCount, block = {
+        horizontalArrangement = if (selectedCount > 0) Arrangement.spacedBy(16.dp) else Arrangement.SpaceEvenly
+    })
+
+    val doneAlpha = animateFloatAsState(targetValue = if (selectedCount > 0) 1f else 0f, label = "doneAlphaAnimation")
+
+
+
     ModalBottomSheet(
         modifier = Modifier
             .defaultMinSize(minHeight = modalHeight.toDp())
@@ -244,7 +266,8 @@ fun BottomSheetDialog(
         sheetState = bottomSheetState,
         containerColor = config.containerColor,
         scrimColor = config.scrimColor ?: Color.Gray,
-        onDismissRequest = {}) {
+        onDismissRequest = onDismissDialog
+    ) {
 
         Box(
             modifier = Modifier
@@ -257,7 +280,7 @@ fun BottomSheetDialog(
                     if (files.isEmpty())
                         Text(modifier = Modifier.fillMaxWidth(), text = config.noItemMessage, style = config.noItemStyle)
                     else
-                        ImageAndVideoScreen(config, imageLoader, modalHeight, files, mode, onChangeSelect, onCameraPhoto)
+                        ImageAndVideoScreen(config, imageLoader, modalHeight, files, mode, onChangeSelect, onCameraPhoto, selectedCount < config.maxSelection)
                 }
 
                 PickerType.File -> {
@@ -268,7 +291,7 @@ fun BottomSheetDialog(
                     if (files.isEmpty())
                         Text(modifier = Modifier.fillMaxWidth(), text = config.noItemMessage, style = config.noItemStyle)
                     else
-                        AudioScreen(config, modalHeight, files, onChangeSelect, searchText, onSearchChange)
+                        AudioScreen(config, modalHeight, files, onChangeSelect, searchText, onSearchChange, selectedCount < config.maxSelection)
                 }
             }
 
@@ -297,7 +320,7 @@ fun BottomSheetDialog(
                     }
                     .shadow(6.dp, RoundedCornerShape(1.dp), spotColor = Color.Gray)
                     .background(color = config.containerColor, RoundedCornerShape(1.dp)),
-                horizontalArrangement = if (selectedCount > 0) Arrangement.spacedBy(16.dp) else Arrangement.SpaceEvenly,
+                horizontalArrangement = horizontalArrangement,
                 contentPadding = PaddingValues(16.dp)
             ) {
                 items(pickerModes.size, key = { pickerModes[it].title }) { index ->
@@ -341,7 +364,7 @@ fun BottomSheetDialog(
 
             Box(
                 modifier = Modifier
-                    .alpha(if (currentType == PickerType.File || selectedCount == 0) 0f else 1f)
+                    .alpha(doneAlpha.value)
                     .offset {
                         IntOffset(
                             modalWidth - (68.dp * density).value.toInt(),
@@ -389,7 +412,8 @@ fun AudioScreen(
     files: ImmutableList<PickerFile>,
     onChangeSelect: (PickerFile) -> Unit,
     searchText: String,
-    onSearchChange: (String) -> Unit
+    onSearchChange: (String) -> Unit,
+    b: Boolean
 ) {
     Column(
         modifier = Modifier
@@ -457,7 +481,8 @@ fun ImageAndVideoScreen(
     files: ImmutableList<PickerFile>,
     mode: PickerMode,
     onChangeSelect: (PickerFile) -> Unit,
-    onCameraPhoto: (PickerFile) -> Unit
+    onCameraPhoto: (PickerFile) -> Unit,
+    enable: Boolean
 ) {
     val context = LocalContext.current
     val mediaListState = rememberLazyGridState()
@@ -505,7 +530,7 @@ fun ImageAndVideoScreen(
                     )
                 }
             } else {
-                MediaItem(pickerFile, config, mode, imageLoader = imageLoader) {
+                MediaItem(pickerFile, config, mode, imageLoader = imageLoader, enable) {
                     onChangeSelect(pickerFile)
                 }
             }
@@ -517,22 +542,32 @@ fun ImageAndVideoScreen(
 @Composable
 fun FileScreen(config: PickerConfig, onStoragePicker: (List<PickerFile>) -> Unit) {
     val context = LocalContext.current
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
-        uris.forEach { uri ->
-            uri.path.printToLog("* ")
-            HandlePathOz(context, object : HandlePathOzListener.MultipleUri {
-                override fun onRequestHandlePathOz(listPathOz: List<PathOz>, tr: Throwable?) {
-                    listPathOz.map { pathOz ->
-                        PickerFile(
-                            path = pathOz.path,
-                            file = File(pathOz.path),
-                            selected = false
-                        )
-                    }.apply { onStoragePicker.invoke(this.distinctBy { it.path }) }
-                }
-            }).getListRealPath(uris)
+    val files = remember { mutableStateOf(listOf<Uri>()) }
+
+    val launcher = if (config.maxSelection < 2) {
+        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            if (uri != null)
+                files.value = listOf(uri)
+        }
+    } else {
+        rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
+            files.value = uris
         }
     }
+
+    val pathListener =
+        object : HandlePathOzListener.MultipleUri {
+            override fun onRequestHandlePathOz(listPathOz: List<PathOz>, tr: Throwable?) {
+                listPathOz.map { pathOz ->
+                    PickerFile(path = pathOz.path, file = File(pathOz.path), selected = false)
+                }.apply { onStoragePicker.invoke(this.distinctBy { it.path }) }
+            }
+        }
+
+    LaunchedEffect(key1 = files, block = {
+        HandlePathOz(context, pathListener).getListRealPath(files.value)
+    })
+
 
     Column(
         modifier = Modifier

@@ -24,6 +24,7 @@ class MainActivity : ComponentActivity() {
             galleryTitle = "گالری",
             galleryDescription = "برای انتخاب فایل از گالری دستگاه",
             supportRtl = true,
+            maxSelection = 3,
             searchTextHint = "جستجو",
             searchTextHintStyle = TextStyle(textAlign = TextAlign.Right)
         )
@@ -34,9 +35,15 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    FilePickerDialog(config = config, selectedFiles = {
-                        it.printToLog("selectedFiles")
-                    })
+                    FilePickerDialog(
+                        config = config,
+                        onDismissDialog = {
+
+                        },
+                        selectedFiles = {
+                            it.printToLog("selectedFiles")
+                        }
+                    )
                 }
             }
         }
