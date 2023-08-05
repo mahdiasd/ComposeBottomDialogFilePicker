@@ -1,16 +1,20 @@
 package mahdiasd.bottomdialogfilepicker
 
 import android.content.Context
+import android.content.Intent
 import android.database.Cursor
 import android.graphics.Bitmap
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
+import android.webkit.MimeTypeMap
+import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.content.FileProvider
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
@@ -140,6 +144,28 @@ object PickerUtils {
             null
         }
     }
+
+    fun openFile(context: Context, fileAddress: String?) {
+        if (fileAddress == null) return
+        try {
+            val file = File(fileAddress)
+            val map = MimeTypeMap.getSingleton()
+            val ext = MimeTypeMap.getFileExtensionFromUrl(file.name)
+            val type = map.getMimeTypeFromExtension(ext)
+            val intent = Intent(Intent.ACTION_VIEW)
+            intent.setDataAndType(FileProvider.getUriForFile(context, "${context.packageName}.provider", file), type)
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+            context.startActivity(intent)
+        } catch (e: java.lang.Exception) {
+            Toast.makeText(
+                context,
+                "Can`t open file!",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
 
     @Composable
     fun Dp.toPx(): Float {

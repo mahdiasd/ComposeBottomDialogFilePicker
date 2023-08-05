@@ -193,6 +193,7 @@ fun FilePickerDialog(
             onDoneClick = {
                 val s = (images.flatMap { listOf(it) } + audios.flatMap { listOf(it) } + videos.flatMap { listOf(it) }).filter { it.selected }.distinctBy { it.path }
                 selectedFiles.invoke(s)
+                onDismissDialog()
                 coroutineScope.launch { bottomSheetState.hide() }
             },
             onCameraPhoto = { pickerFile ->
@@ -203,6 +204,7 @@ fun FilePickerDialog(
             },
             onStoragePicker = { list ->
                 selectedFiles.invoke(list.distinctBy { it.path })
+                onDismissDialog()
                 coroutineScope.launch { bottomSheetState.hide() }
             }
         )
@@ -282,7 +284,7 @@ fun BottomSheetDialog(
                     if (files.isEmpty())
                         Text(modifier = Modifier.fillMaxWidth(), text = config.noItemMessage, style = config.noItemStyle)
                     else
-                        ImageAndVideoScreen(config, imageLoader, modalHeight, files, mode, onChangeSelect, onCameraPhoto, selectedCount < config.maxSelection)
+                        ImageAndVideoScreen(config, imageLoader, modalHeight, files, mode, onChangeSelect, onCameraPhoto)
                 }
 
                 PickerType.File -> {
@@ -293,7 +295,7 @@ fun BottomSheetDialog(
                     if (files.isEmpty())
                         Text(modifier = Modifier.fillMaxWidth(), text = config.noItemMessage, style = config.noItemStyle)
                     else
-                        AudioScreen(config, modalHeight, files, onChangeSelect, searchText, onSearchChange, selectedCount < config.maxSelection)
+                        AudioScreen(config, modalHeight, files, onChangeSelect, searchText, onSearchChange)
                 }
             }
 
@@ -420,7 +422,6 @@ fun AudioScreen(
     onChangeSelect: (PickerFile) -> Unit,
     searchText: String,
     onSearchChange: (String) -> Unit,
-    b: Boolean
 ) {
     Column(
         modifier = Modifier
@@ -489,7 +490,6 @@ fun ImageAndVideoScreen(
     mode: PickerMode,
     onChangeSelect: (PickerFile) -> Unit,
     onCameraPhoto: (PickerFile) -> Unit,
-    enable: Boolean
 ) {
     val context = LocalContext.current
     val mediaListState = rememberLazyGridState()
@@ -537,7 +537,7 @@ fun ImageAndVideoScreen(
                     )
                 }
             } else {
-                MediaItem(pickerFile, config, mode, imageLoader = imageLoader, enable) {
+                MediaItem(pickerFile, config, mode, imageLoader = imageLoader) {
                     onChangeSelect(pickerFile)
                 }
             }
@@ -550,18 +550,6 @@ fun ImageAndVideoScreen(
 fun FileScreen(config: PickerConfig, onStoragePicker: (List<PickerFile>) -> Unit) {
     val context = LocalContext.current
     val files = remember { mutableStateOf(listOf<Uri>()) }
-
-    val launcher = if (config.maxSelection < 2) {
-        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-            if (uri != null)
-                files.value = listOf(uri)
-        }
-    } else {
-        rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
-            files.value = uris
-        }
-    }
-
     val pathListener =
         object : HandlePathOzListener.MultipleUri {
             override fun onRequestHandlePathOz(listPathOz: List<PathOz>, tr: Throwable?) {
@@ -572,10 +560,19 @@ fun FileScreen(config: PickerConfig, onStoragePicker: (List<PickerFile>) -> Unit
             }
         }
 
-    LaunchedEffect(key1 = files, block = {
-        HandlePathOz(context, pathListener).getListRealPath(files.value)
-    })
-
+    val launcher = if (config.maxSelection < 2) {
+        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            if (uri != null){
+                files.value = listOf(uri)
+                HandlePathOz(context, pathListener).getListRealPath(files.value)
+            }
+        }
+    } else {
+        rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
+            files.value = uris
+            HandlePathOz(context, pathListener).getListRealPath(files.value)
+        }
+    }
 
     Column(
         modifier = Modifier

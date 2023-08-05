@@ -80,7 +80,7 @@ publishing {
         register<MavenPublication>("release") {
             groupId = "mahdiasd.bottomdialogfilepicker"
             artifactId = "compose_bottom_dialog_file_picker"
-            version = "0.0.7"
+            version = "1.0.0"
 
             afterEvaluate {
                 from(components["release"])

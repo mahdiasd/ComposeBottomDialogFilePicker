@@ -24,6 +24,7 @@ data class PickerConfig(
     val containerColor: Color = pickerDarkColor,
     val scrimColor: Color? = null,
     val maxSelection: Int = 100,
+    val showPreview: Boolean = false,
 
     val enableCamera: Boolean = true,
     val cameraIcon: Int = R.drawable.mahdiasd_ic_camera,
@@ -40,7 +41,7 @@ data class PickerConfig(
     val doneIconBackground: Color = pickerColorPrimary,
 
     val doneBadgeBackgroundColor: Color = pickerColorPrimary,
-    val doneBadgeStyle: TextStyle = TextStyle(Color.White, fontWeight = FontWeight.Normal, fontSize = 14.sp , textAlign = TextAlign.Center),
+    val doneBadgeStyle: TextStyle = TextStyle(Color.White, fontWeight = FontWeight.Normal, fontSize = 14.sp, textAlign = TextAlign.Center),
 
 
     val videoPlayIcon: Int = R.drawable.mahdiasd_ic_play,

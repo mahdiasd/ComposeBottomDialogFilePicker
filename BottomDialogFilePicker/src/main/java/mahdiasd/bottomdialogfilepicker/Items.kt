@@ -27,6 +27,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -45,10 +46,9 @@ fun MediaItem(
     config: PickerConfig = PickerConfig(PickerType.Video),
     pickerMode: PickerMode = PickerMode(PickerType.Video),
     imageLoader: ImageLoader,
-    enable: Boolean,
     onChecked: () -> Unit = {},
 ) {
-
+    val context = LocalContext.current
     val painter = rememberAsyncImagePainter(model = pickerFile.path, imageLoader = imageLoader)
 
     Box(
@@ -63,7 +63,10 @@ fun MediaItem(
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
-                .clickable { onChecked() }
+                .clickable {  if (config.showPreview)
+                    PickerUtils.openFile(context, pickerFile.path)
+                else
+                    onChecked() }
                 .fillMaxSize()
                 .clip(RoundedCornerShape(10.dp))
         )
@@ -101,6 +104,7 @@ fun MediaAudioItem(
     onChecked: () -> Unit = {}
 
 ) {
+    val context = LocalContext.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -113,7 +117,12 @@ fun MediaAudioItem(
             painter = painterResource(id = pickerMode.itemIcon),
             contentDescription = null,
             modifier = Modifier
-                .clickable { onChecked() }
+                .clickable {
+                    if (config.showPreview)
+                        PickerUtils.openFile(context, pickerFile.path)
+                    else
+                        onChecked()
+                }
                 .size(pickerMode.itemIconSize)
                 .background(pickerMode.itemIconBackground, CircleShape)
                 .padding(4.dp),
@@ -124,7 +133,12 @@ fun MediaAudioItem(
 
         Text(
             modifier = Modifier
-                .clickable { onChecked() }
+                .clickable {
+                    if (config.showPreview)
+                        PickerUtils.openFile(context, pickerFile.path)
+                    else
+                        onChecked()
+                }
                 .weight(1f, true),
             text = pickerFile.file.name,
             maxLines = 1,
@@ -176,8 +190,7 @@ fun FileItem(
             Column(modifier = Modifier.weight(1f, true), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        ,
+                        .fillMaxWidth(),
                     text = title,
                     style = titleTextStyle.plus(TextStyle(textDirection = TextDirection.Rtl, textAlign = TextAlign.Right))
                 )
