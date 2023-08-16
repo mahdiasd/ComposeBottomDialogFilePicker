@@ -1,5 +1,8 @@
 package mahdiasd.bottomdialogfilepicker
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -8,9 +11,12 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import mahdiasd.bottomdialogfilepicker.PickerUtils.printToLog
@@ -35,6 +41,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             BottomDialogFilePickerTheme {
+//                LockScreenOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE)
                 val isShowing = remember {
                     mutableStateOf(true)
                 }
@@ -62,4 +69,22 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+}
+@Composable
+fun LockScreenOrientation(orientation: Int) {
+    val context = LocalContext.current
+    DisposableEffect(orientation) {
+        val activity = context.findActivity() ?: return@DisposableEffect onDispose {}
+        val originalOrientation = activity.requestedOrientation
+        activity.requestedOrientation = orientation
+        onDispose {
+            // restore original orientation when view disappears
+            activity.requestedOrientation = originalOrientation
+        }
+    }
+}
+fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
 }

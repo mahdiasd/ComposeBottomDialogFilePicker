@@ -1,5 +1,6 @@
 package mahdiasd.bottomdialogfilepicker
 
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.net.Uri
 import android.widget.Toast
@@ -63,6 +64,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -83,6 +85,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import mahdiasd.bottomdialogfilepicker.PickerUtils.getAudio
 import mahdiasd.bottomdialogfilepicker.PickerUtils.getImage
@@ -100,6 +103,7 @@ fun FilePickerDialog(
     onDismissDialog: () -> Unit,
     selectedFiles: (List<PickerFile>) -> Unit,
 ) {
+
     val permissionsState = permissionState(config.enableCamera)
     if (!permissionsState.allPermissionsGranted) {
         LaunchedEffect(key1 = true, block = {
@@ -141,6 +145,7 @@ fun FilePickerDialog(
         val bottomSheetState = rememberModalBottomSheetState()
 
         val selectedFilesCount = remember { mutableStateOf(0) }
+
 
         BottomSheetDialog(
             pickerModes = modes.toImmutableList(),
@@ -230,6 +235,7 @@ fun BottomSheetDialog(
     onDoneClick: () -> Unit,
     onCameraPhoto: (PickerFile) -> Unit,
     onStoragePicker: (List<PickerFile>) -> Unit,
+    isLandscape: Boolean = LocalConfiguration.current.orientation != Configuration.ORIENTATION_PORTRAIT
 
     ) {
     val density = LocalDensity.current.density
@@ -253,7 +259,7 @@ fun BottomSheetDialog(
 
     var horizontalArrangement by remember { mutableStateOf(Arrangement.SpaceEvenly) }
     LaunchedEffect(key1 = selectedCount, block = {
-        horizontalArrangement = if (selectedCount > 0) Arrangement.spacedBy(16.dp) else Arrangement.SpaceEvenly
+        horizontalArrangement = if (selectedCount > 0 && !isLandscape) Arrangement.spacedBy(16.dp) else Arrangement.SpaceEvenly
     })
 
     val doneAlpha = animateFloatAsState(targetValue = if (selectedCount > 0) 1f else 0f, label = "doneAlphaAnimation")
@@ -411,6 +417,11 @@ fun BottomSheetDialog(
         }
     }
 
+    LaunchedEffect(key1 = isLandscape, block = {
+        delay(500)
+        bottomSheetState.expand()
+    })
+
 
 }
 
@@ -490,6 +501,8 @@ fun ImageAndVideoScreen(
     mode: PickerMode,
     onChangeSelect: (PickerFile) -> Unit,
     onCameraPhoto: (PickerFile) -> Unit,
+    isLandscape: Boolean = LocalConfiguration.current.orientation != Configuration.ORIENTATION_PORTRAIT
+
 ) {
     val context = LocalContext.current
     val mediaListState = rememberLazyGridState()
@@ -504,7 +517,7 @@ fun ImageAndVideoScreen(
     }
 
     LazyVerticalGrid(
-        columns = GridCells.Fixed(3),
+        columns = GridCells.Adaptive(120.dp),
         state = mediaListState,
         modifier = Modifier
             .fillMaxWidth()
@@ -562,7 +575,7 @@ fun FileScreen(config: PickerConfig, onStoragePicker: (List<PickerFile>) -> Unit
 
     val launcher = if (config.maxSelection < 2) {
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-            if (uri != null){
+            if (uri != null) {
                 files.value = listOf(uri)
                 HandlePathOz(context, pathListener).getListRealPath(files.value)
             }
