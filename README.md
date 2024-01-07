@@ -57,7 +57,8 @@ dependencies {
 
  val config = PickerConfig(
             currentType = PickerType.Image,
-            storageTitle = "حافظه دستگاه",
+	    modes = listOf(PickerMode(PickerType.Image, title = "عکس")), // you can choose Image, Video, File, Audio and customize each picker mode
+	    storageTitle = "حافظه دستگاه",
             storageDescription = "برای انتخاب فایل از فایل منیجر دستگاه",
             galleryTitle = "گالری",
             galleryDescription = "برای انتخاب فایل از گالری دستگاه",
@@ -75,6 +76,10 @@ FilePickerDialog(
   }
 )
 ```
+
+## Customize:
+Refer to this link to learn about the parameters that can be customized:
+https://github.com/mahdiasd/ComposeBottomDialogFilePicker/blob/master/BottomDialogFilePicker/src/main/java/mahdiasd/bottomdialogfilepicker/PickerConfig.kt
 
 ## LICENCE
 ```
