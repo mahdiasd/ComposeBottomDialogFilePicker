@@ -36,19 +36,19 @@ Add it in your root build.gradle at the end of repositories:
 
 
 ```bash
-  allprojects {
-		repositories {
-			...
-			maven { url 'https://jitpack.io' }
-		}
+allprojects {
+	repositories {
+		...
+		maven { url 'https://jitpack.io' }
 	}
+}
 ```
 #### Step 2. Add the dependency
 
 ```bash
-  dependencies {
+dependencies {
       implementation 'com.github.mahdiasd:ComposeBottomDialogFilePicker:1.0.1'
-	}
+}
 ```
 ## Ho To Use
 
@@ -67,15 +67,13 @@ Add it in your root build.gradle at the end of repositories:
             searchTextHintStyle = TextStyle(textAlign = TextAlign.Right)
         )
 
- FilePickerDialog(
-                            config = config,
-                            onDismissDialog = {
-                                isShowButtomDialog.value = false
-                            },
-                            selectedFiles = {
-                                it.printToLog("selectedFiles")
-                            }
-                        )
+FilePickerDialog(
+  config = config,
+  onDismissDialog = { isShowButtomDialog.value = false  },
+  selectedFiles = {
+  	it.printToLog("selectedFiles")
+  }
+)
 ```
 
 ## LICENCE
