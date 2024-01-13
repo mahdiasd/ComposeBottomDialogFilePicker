@@ -1,4 +1,4 @@
-# [Xml Version](https://github.com/mahdiasd/DialogFilePicker)
+# [Xml Version](https://github.com/mahdiasd/BottomDialogFilePicker)
 
 # Bottom Dialog Android Picker
 
